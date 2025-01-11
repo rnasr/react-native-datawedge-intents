@@ -1,6 +1,8 @@
 *Please be aware that this application / sample is provided as-is for demonstration purposes without any guarantee of support*
 =========================================================
 
+*NOTE: I forked from darryncampbell/react-native-datawedge-intents to add support for Andrdoid 12+ that requires BroadcastReceiver export status to be explicitly declared.*
+
 
 # React-Native-DataWedge-Intents
 React Native Android module to interface with Zebra's DataWedge Intent API
@@ -15,19 +17,13 @@ This module is useful when developing React Native applications for Zebra mobile
 ### Installation
 
 ```bash
-npm install react-native-datawedge-intents --save
-react-native link react-native-datawedge-intents 
+npm install react-native-datawedge-intent-rnasr --save
 ```
-Note: as of ReactNative version 0.27 automatic installation of modules is supported via react-native link ... If you are running a version earlier than 0.26 then you will be required to manually install the module.  More detail on manual installation of a typical module can be found [here](https://github.com/Microsoft/react-native-code-push#plugin-installation-android---manual).
 
 ## Example usage
 
-There are two samples available for this module:
-
-**Please see [RNDataWedgeIntentDemo](https://github.com/darryncampbell/RNDataWedgeIntentDemo) for a basic sample application that makes use of this module**, file [index.android.js](https://github.com/darryncampbell/RNDataWedgeIntentDemo/blob/master/index.android.js).  This application is a little dated now and is designed to work with version 0.0.2 of this module.
-
 ```javascript
-import DataWedgeIntents from 'react-native-datawedge-intents'
+import DataWedgeIntents from 'react-native-datawedge-intent-rnasr'
 ...
 //  Register a receiver for the barcode scans with the appropriate action
 DataWedgeIntents.registerReceiver('com.zebra.dwintents.ACTION', '');
@@ -42,8 +38,6 @@ DeviceEventEmitter.addListener('barcode_scan', this.scanHandler);
 DataWedgeIntents.sendIntent(DataWedgeIntents.ACTION_SOFTSCANTRIGGER,DataWedgeIntents.START_SCANNING);
 
 ```
-
-**Please see [DataWedgeReactNative](https://github.com/darryncampbell/DataWedgeReactNative) for a more fully featured and up to date application that makes use of this module**, file [App.js](https://github.com/darryncampbell/DataWedgeReactNative/blob/master/App.js).  This application requires a minimum version of 0.1.0 of this module.
 
 ```javascript
 import DataWedgeIntents from 'react-native-datawedge-intents'

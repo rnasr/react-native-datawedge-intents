@@ -1,4 +1,4 @@
-package com.darryncampbell.rndatawedgeintents;
+package com.rnasr.rndatawedgeintents;
 
 import android.content.Intent;
 import android.content.ComponentName;
@@ -49,6 +49,10 @@ import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+// patch
+import android.os.Build;
+import android.content.Context;
+
 public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule implements Observer, LifecycleEventListener {
 
     private static final String TAG = RNDataWedgeIntentsModule.class.getSimpleName();
@@ -77,20 +81,20 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
     private static final String RECEIVED_SCAN_SOURCE = "com.symbol.datawedge.source";
     private static final String RECEIVED_SCAN_DATA = "com.symbol.datawedge.data_string";
     private static final String RECEIVED_SCAN_TYPE = "com.symbol.datawedge.label_type";
-	//  The previously registered receiver (if any)
-	private String registeredAction = null;
-	private String registeredCategory = null;
+    //  The previously registered receiver (if any)
+    private String registeredAction = null;
+    private String registeredCategory = null;
 
     private ReactApplicationContext reactContext;
 
     public RNDataWedgeIntentsModule(ReactApplicationContext reactContext) {
-      super(reactContext);
-      this.reactContext = reactContext;
-      reactContext.addLifecycleEventListener(this);
-      Log.v(TAG, "Constructing React native DataWedge intents module");
+        super(reactContext);
+        this.reactContext = reactContext;
+        reactContext.addLifecycleEventListener(this);
+        Log.v(TAG, "Constructing React native DataWedge intents module");
 
-      //  Register a broadcast receiver to return data back to the application
-      ObservableObject.getInstance().addObserver(this);
+        //  Register a broadcast receiver to return data back to the application
+        ObservableObject.getInstance().addObserver(this);
     }
 
     @Override
@@ -105,10 +109,21 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_ENUMERATEDLISET);
-        reactContext.registerReceiver(myEnumerateScannersBroadcastReceiver, filter);
-	    if (this.registeredAction != null)
-          registerReceiver(this.registeredAction, this.registeredCategory);
-          
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            reactContext.registerReceiver(
+                    myEnumerateScannersBroadcastReceiver,
+                    filter,
+                    Context.RECEIVER_EXPORTED
+            );
+        } else {
+            reactContext.registerReceiver(myEnumerateScannersBroadcastReceiver, filter);
+        }
+
+        if (this.registeredAction != null) {
+            registerReceiver(this.registeredAction, this.registeredCategory);
+        }
+
     }
 
     @Override
@@ -135,26 +150,26 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
 
     @Override
     public String getName() {
-      return "DataWedgeIntents";
+        return "DataWedgeIntents";
     }
 
     @Override
     public Map<String, Object> getConstants() {
-      final Map<String, Object> constants = new HashMap<>();
-      //  These are the constants available to the caller
-      //  CONSTANTS HAVE BEEN DEPRECATED and will not stay current with the latest DW API
-      constants.put("ACTION_SOFTSCANTRIGGER", ACTION_SOFTSCANTRIGGER);
-      constants.put("ACTION_SCANNERINPUTPLUGIN", ACTION_SCANNERINPUTPLUGIN);
-      constants.put("ACTION_ENUMERATESCANNERS", ACTION_ENUMERATESCANNERS);
-      constants.put("ACTION_SETDEFAULTPROFILE", ACTION_SETDEFAULTPROFILE);
-      constants.put("ACTION_RESETDEFAULTPROFILE", ACTION_RESETDEFAULTPROFILE);
-      constants.put("ACTION_SWITCHTOPROFILE", ACTION_SWITCHTOPROFILE);
-      constants.put("START_SCANNING", START_SCANNING);
-      constants.put("STOP_SCANNING", STOP_SCANNING);
-      constants.put("TOGGLE_SCANNING", TOGGLE_SCANNING);
-      constants.put("ENABLE_PLUGIN", ENABLE_PLUGIN);
-      constants.put("DISABLE_PLUGIN", DISABLE_PLUGIN);
-      return constants;
+        final Map<String, Object> constants = new HashMap<>();
+        //  These are the constants available to the caller
+        //  CONSTANTS HAVE BEEN DEPRECATED and will not stay current with the latest DW API
+        constants.put("ACTION_SOFTSCANTRIGGER", ACTION_SOFTSCANTRIGGER);
+        constants.put("ACTION_SCANNERINPUTPLUGIN", ACTION_SCANNERINPUTPLUGIN);
+        constants.put("ACTION_ENUMERATESCANNERS", ACTION_ENUMERATESCANNERS);
+        constants.put("ACTION_SETDEFAULTPROFILE", ACTION_SETDEFAULTPROFILE);
+        constants.put("ACTION_RESETDEFAULTPROFILE", ACTION_RESETDEFAULTPROFILE);
+        constants.put("ACTION_SWITCHTOPROFILE", ACTION_SWITCHTOPROFILE);
+        constants.put("START_SCANNING", START_SCANNING);
+        constants.put("STOP_SCANNING", STOP_SCANNING);
+        constants.put("TOGGLE_SCANNING", TOGGLE_SCANNING);
+        constants.put("ENABLE_PLUGIN", ENABLE_PLUGIN);
+        constants.put("DISABLE_PLUGIN", DISABLE_PLUGIN);
+        return constants;
     }
 
     @ReactMethod
@@ -164,10 +179,10 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
         Log.v(TAG, "Sending Intent with action: " + action + ", parameter: [" + parameterValue + "]");
         //  Some DW API calls use a different paramter name, abstract this from the caller.
         String parameterKey = EXTRA_PARAMETER;
-        if (action.equalsIgnoreCase(ACTION_SETDEFAULTPROFILE) || 
-            action.equalsIgnoreCase(ACTION_RESETDEFAULTPROFILE) || 
-            action.equalsIgnoreCase(ACTION_SWITCHTOPROFILE))
-                parameterKey = EXTRA_PROFILENAME;
+        if (action.equalsIgnoreCase(ACTION_SETDEFAULTPROFILE) ||
+                action.equalsIgnoreCase(ACTION_RESETDEFAULTPROFILE) ||
+                action.equalsIgnoreCase(ACTION_SWITCHTOPROFILE))
+            parameterKey = EXTRA_PROFILENAME;
 
         Intent dwIntent = new Intent();
         dwIntent.setAction(action);
@@ -215,7 +230,7 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
                 i.putExtra(key, valueStr);
             }
         }
-        this.reactContext.sendBroadcast(i);    
+        this.reactContext.sendBroadcast(i);
     }
 
     //  Credit: https://github.com/facebook/react-native/issues/4655
@@ -282,7 +297,7 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
         return deconstructedList;
     }
 
-    //  https://github.com/darryncampbell/darryncampbell-cordova-plugin-intent/blob/master/src/android/IntentShim.java
+    //  https://github.com/rnasr/rnasr-cordova-plugin-intent/blob/master/src/android/IntentShim.java
     private Bundle toBundle(final JSONObject obj) {
         Bundle returnBundle = new Bundle();
         if (obj == null) {
@@ -349,50 +364,73 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
     {
         //  THIS METHOD IS DEPRECATED, use registerBroadcastReceiver
         Log.d(TAG, "Registering an Intent filter for action: " + action);
-		this.registeredAction = action;
-		this.registeredCategory = category;
-        //  User has specified the intent action and category that DataWedge will be reporting
+        this.registeredAction = action;
+        this.registeredCategory = category;
+
         unregisterReceiver(scannedDataBroadcastReceiver);
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(action);
         if (category != null && category.length() > 0)
-          filter.addCategory(category);
-        this.reactContext.registerReceiver(scannedDataBroadcastReceiver, filter);
+            filter.addCategory(category);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            this.reactContext.registerReceiver(
+                    scannedDataBroadcastReceiver,
+                    filter,
+                    Context.RECEIVER_EXPORTED
+            );
+        } else {
+            this.reactContext.registerReceiver(scannedDataBroadcastReceiver, filter);
+        }
     }
 
     @ReactMethod
     public void registerBroadcastReceiver(ReadableMap filterObj)
     {
         unregisterReceiver(genericReceiver);
+        System.out.println("DWPLUGIN REGISTER BROADCAST 1");
         IntentFilter filter = new IntentFilter();
-        if (filterObj.hasKey("filterActions"))
-        {
+        if (filterObj.hasKey("filterActions")) {
+            System.out.println("DWPLUGIN REGISTER BROADCAST 2");
             ReadableType type = filterObj.getType("filterActions");
-            if (type == ReadableType.Array)
-            {
+            if (type == ReadableType.Array) {
                 ReadableArray actionsArray = filterObj.getArray("filterActions");
-                for (int i = 0; i < actionsArray.size(); i++)
-                {
+                for (int i = 0; i < actionsArray.size(); i++) {
                     filter.addAction(actionsArray.getString(i));
                 }
             }
+            System.out.println("DWPLUGIN REGISTER BROADCAST 3");
         }
-        if (filterObj.hasKey("filterCategories"))
-        {
+        System.out.println("DWPLUGIN REGISTER BROADCAST 4");
+        if (filterObj.hasKey("filterCategories")) {
             ReadableType type = filterObj.getType("filterCategories");
-            if (type == ReadableType.Array)
-            {
+            System.out.println("DWPLUGIN REGISTER BROADCAST 5");
+            if (type == ReadableType.Array) {
+                System.out.println("DWPLUGIN REGISTER BROADCAST 6");
                 ReadableArray categoriesArray = filterObj.getArray("filterCategories");
-                for (int i = 0; i < categoriesArray.size(); i++)
-                {
+                for (int i = 0; i < categoriesArray.size(); i++) {
                     filter.addCategory(categoriesArray.getString(i));
                 }
             }
         }
-        this.reactContext.registerReceiver(genericReceiver, filter);
+        System.out.println("DWPLUGIN REGISTER BROADCAST 7");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            System.out.println("DWPLUGIN - Register Exported");
+            this.reactContext.registerReceiver(
+                    genericReceiver,
+                    filter,
+                    Context.RECEIVER_EXPORTED
+            );
+        } else {
+            System.out.println("DWPLUGIN - Old Register");
+            this.reactContext.registerReceiver(genericReceiver, filter);
+        }
     }
 
     private void unregisterReceivers() {
+        System.out.println("DWPLUGIN - Unregister receiver");
         unregisterReceiver(myEnumerateScannersBroadcastReceiver);
         unregisterReceiver(scannedDataBroadcastReceiver);
     }
@@ -409,9 +447,9 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
     }
 
     //  Broadcast receiver for the response to the Enumerate Scanner API
-    //  THIS METHOD IS DEPRECATED, you should enumerate scanners as shown in https://github.com/darryncampbell/DataWedgeReactNative/blob/master/App.js
-    public BroadcastReceiver myEnumerateScannersBroadcastReceiver = new BroadcastReceiver() 
-    {    
+    //  THIS METHOD IS DEPRECATED, you should enumerate scanners as shown in https://github.com/rnasr/DataWedgeReactNative/blob/master/App.js
+    public BroadcastReceiver myEnumerateScannersBroadcastReceiver = new BroadcastReceiver()
+    {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.v(TAG, "Received Broadcast from DataWedge API - Enumerate Scanners");
@@ -421,12 +459,13 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
 
     //  Broadcast receiver for the DataWedge intent being sent from Datawedge.  
     //  Note: DW must be configured to send broadcast intents
-    //  THIS METHOD IS DEPRECATED, you should enumerate scanners as shown in https://github.com/darryncampbell/DataWedgeReactNative/blob/master/App.js
-    public BroadcastReceiver scannedDataBroadcastReceiver = new BroadcastReceiver() 
-    {    
+    //  THIS METHOD IS DEPRECATED, you should enumerate scanners as shown in https://github.com/rnasr/DataWedgeReactNative/blob/master/App.js
+    public BroadcastReceiver scannedDataBroadcastReceiver = new BroadcastReceiver()
+    {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.v(TAG, "Received Broadcast from DataWedge API - Scanner");
+            System.out.println("DWPLUGIN - GOT AN INTENT");
             ObservableObject.getInstance().updateValue(intent);
         }
     };
@@ -436,6 +475,7 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.v(TAG, "Received Broadcast from DataWedge");
+            System.out.println("DWPLUGIN - GENERIC RECEIVER GOT AN INTENT");
             intent.putExtra("v2API", true);
             ObservableObject.getInstance().updateValue(intent);
         }
@@ -444,67 +484,74 @@ public class RNDataWedgeIntentsModule extends ReactContextBaseJavaModule impleme
     //  Sending events to JavaScript as defined in the native-modules documentation.  
     //  Note: Callbacks can only be invoked a single time so are not a suitable interface for barcode scans.
     private void sendEvent(ReactContext reactContext,
-                       String eventName,
-                       WritableMap params) {
+                           String eventName,
+                           WritableMap params) {
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
     }
 
     //  Credit: http://stackoverflow.com/questions/28083430/communication-between-broadcastreceiver-and-activity-android#30964385
     @Override
-    public void update(Observable observable, Object data) 
-    {            
-      Intent intent = (Intent)data;
+    public void update(Observable observable, Object data)
+    {
+        System.out.println("DWPLUGIN - UPDATE");
+        Intent intent = (Intent)data;
 
-      if (intent.hasExtra("v2API"))
-      {
-          Bundle intentBundle = intent.getExtras();
+        if (intent.hasExtra("v2API"))
+        {
+            System.out.println("DWPLUGIN - in v2API");
+            Bundle intentBundle = intent.getExtras();
 
-          // Remove arrays (fb converter cannot cope with byte arrays)
-          for (String key : new ArrayList<String>(intentBundle.keySet())) {
-              Object extraValue = intentBundle.get(key);
-              if (extraValue instanceof byte[] || extraValue instanceof ArrayList || extraValue instanceof ArrayList<?>) {
-                  intentBundle.remove(key);
-              }
-          }
-          
-          WritableMap map = Arguments.fromBundle(intentBundle);
-          sendEvent(this.reactContext, "datawedge_broadcast_intent", map);
-      }
+            // Remove arrays (fb converter cannot cope with byte arrays)
+            for (String key : new ArrayList<String>(intentBundle.keySet())) {
+                Object extraValue = intentBundle.get(key);
+                if (extraValue instanceof byte[] || extraValue instanceof ArrayList || extraValue instanceof ArrayList<?>) {
+                    intentBundle.remove(key);
+                }
+            }
 
-      String action = intent.getAction();
-      if (action.equals(ACTION_ENUMERATEDLISET)) 
-      {
-          Bundle b = intent.getExtras();
-          String[] scanner_list = b.getStringArray(KEY_ENUMERATEDSCANNERLIST);
-          WritableArray userFriendlyScanners = new WritableNativeArray();
-          for (int i = 0; i < scanner_list.length; i++)
-          {
-              userFriendlyScanners.pushString(scanner_list[i]);
-          }
-          try
-          {
-            WritableMap enumeratedScannersObj = new WritableNativeMap();
-            enumeratedScannersObj.putArray("Scanners", userFriendlyScanners);
-            sendEvent(this.reactContext, "enumerated_scanners", enumeratedScannersObj);
-          }
-          catch (Exception e)
-          {
-              Toast.makeText(this.reactContext, "Error returning scanners", Toast.LENGTH_LONG).show();
-              e.printStackTrace();
-          }
-      }
-      else
-      {
-          //  Intent from the scanner (barcode has been scanned)
-          String decodedSource = intent.getStringExtra(RECEIVED_SCAN_SOURCE);
-          String decodedData = intent.getStringExtra(RECEIVED_SCAN_DATA);
-          String decodedLabelType = intent.getStringExtra(RECEIVED_SCAN_TYPE);
+            WritableMap map = Arguments.fromBundle(intentBundle);
+            sendEvent(this.reactContext, "datawedge_broadcast_intent", map);
+        }
 
-          WritableMap scanData = new WritableNativeMap();
-          scanData.putString("source", decodedSource);
-          scanData.putString("data", decodedData);
-          scanData.putString("labelType", decodedLabelType);
-          sendEvent(this.reactContext, "barcode_scan", scanData);
-      }
+        String action = intent.getAction();
+        if (action.equals(ACTION_ENUMERATEDLISET))
+        {
+            System.out.println("DWPLUGIN - in ENUMERATEDLISET");
+            Bundle b = intent.getExtras();
+            String[] scanner_list = b.getStringArray(KEY_ENUMERATEDSCANNERLIST);
+            WritableArray userFriendlyScanners = new WritableNativeArray();
+            for (int i = 0; i < scanner_list.length; i++)
+            {
+                userFriendlyScanners.pushString(scanner_list[i]);
+            }
+            try
+            {
+                WritableMap enumeratedScannersObj = new WritableNativeMap();
+                enumeratedScannersObj.putArray("Scanners", userFriendlyScanners);
+                sendEvent(this.reactContext, "enumerated_scanners", enumeratedScannersObj);
+            }
+            catch (Exception e)
+            {
+                System.out.println("DWPLUGIN - Error returning scanners");
+                Toast.makeText(this.reactContext, "Error returning scanners", Toast.LENGTH_LONG).show();
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            //  Intent from the scanner (barcode has been scanned)
+            System.out.println("DWPLUGIN - in Scanner");
+            String decodedSource = intent.getStringExtra(RECEIVED_SCAN_SOURCE);
+            String decodedData = intent.getStringExtra(RECEIVED_SCAN_DATA);
+            String decodedLabelType = intent.getStringExtra(RECEIVED_SCAN_TYPE);
+            System.out.println("DWPLUGIN - " + decodedSource + " " + decodedData + " " + decodedLabelType);
+
+            WritableMap scanData = new WritableNativeMap();
+            scanData.putString("source", decodedSource);
+            scanData.putString("data", decodedData);
+            scanData.putString("labelType", decodedLabelType);
+            System.out.println("DWPLUGIN - " + scanData);
+            sendEvent(this.reactContext, "barcode_scan", scanData);
+        }
     }
 }

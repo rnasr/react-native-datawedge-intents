@@ -1,4 +1,4 @@
-package com.darryncampbell.rndatawedgeintents;
+package com.rnasr.rndatawedgeintents;
 
 import android.app.Activity;
 
